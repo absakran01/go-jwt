@@ -6,10 +6,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET")) 
+var jwtSecret []byte
 
 func GenerateToken(userID uint) (string, error) {
-
+	if jwtSecret == nil {
+		jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 	})
@@ -23,6 +25,9 @@ func GenerateToken(userID uint) (string, error) {
 }
 
 func ValidateToken(tokenString string) (bool, error) {
+	if jwtSecret == nil {
+		jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})

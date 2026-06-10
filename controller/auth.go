@@ -15,7 +15,7 @@ type authRequest struct {
 }
 
 func Register(ctx *fiber.Ctx) error {
-	user, err := parseAuthRequest(ctx)
+	user, err := parseAuthRequestWithHash(ctx)
 	if err != nil {
 		log.Printf("Error parsing request body: %v", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -56,7 +56,7 @@ func Login(ctx *fiber.Ctx) error {
 		})
 	}
 
-	if !utils.CheckPass(user.Password, existingUser.Password) {
+	if !utils.CheckPass(existingUser.Password, user.Password) {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid password",
 		})
@@ -76,7 +76,7 @@ func Login(ctx *fiber.Ctx) error {
 	})
 }
 
-func parseAuthRequest(ctx *fiber.Ctx) (model.User, error) {
+func parseAuthRequestWithHash(ctx *fiber.Ctx) (model.User, error) {
 	var authRequest authRequest
 	err := ctx.BodyParser(&authRequest)
 	if err != nil {
@@ -86,6 +86,20 @@ func parseAuthRequest(ctx *fiber.Ctx) (model.User, error) {
 	user := model.User{
 		Email: authRequest.Email,
 		Password: utils.HashPass(authRequest.Password),
+	}
+	return user, nil
+}
+
+func parseAuthRequest(ctx *fiber.Ctx) (model.User, error) {
+	var authRequest authRequest
+	err := ctx.BodyParser(&authRequest)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	user := model.User{
+		Email: authRequest.Email,
+		Password: authRequest.Password,
 	}
 	return user, nil
 }
