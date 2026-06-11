@@ -1,9 +1,10 @@
 package router
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"go-jwt/controller"
 	"go-jwt/middleware"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -16,9 +17,9 @@ func SetupRoutes(app *fiber.App) {
 	books := api.Group("/books")
 	books.Get("/", controller.GetBooks)
 	books.Get("/:id", controller.GetBook)
-	
+
 	//secured routes
-	books.Use(middleware.JwtMiddleware)
+	books.Use(middleware.BasicAuthMiddleware())
 	books.Post("/", controller.CreateBook)
 	books.Put("/:id", controller.UpdateBook)
 	books.Delete("/:id", controller.DeleteBook)
