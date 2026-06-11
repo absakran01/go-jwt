@@ -5,6 +5,7 @@ import (
 	"go-jwt/model"
 	"go-jwt/utils"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -31,6 +32,21 @@ func Register(ctx *fiber.Ctx) error {
 			"error": "Failed to create user",
 		})
 	}
+
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		log.Printf("Error generating JWT: %v", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate token",
+		})
+	}
+
+	ctx.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		HTTPOnly: true,
+		Expires:  time.Now().Add(time.Hour),
+	})
 
 	log.Printf("User registered successfully: %v", user.Email)
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -69,10 +85,17 @@ func Login(ctx *fiber.Ctx) error {
 			"error": "Failed to generate token",
 		})
 	}
+	
+	ctx.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		HTTPOnly: true,
+		Expires:  time.Now().Add(time.Hour),
+	})
 
 	log.Printf("token generated for user: %v", existingUser)
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"token": token,
+		"message": "Login successful",
 	})
 }
 
